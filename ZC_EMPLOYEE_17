@@ -1,0 +1,23 @@
+@EndUserText.label: 'Consumption View for Employee'
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@Metadata.allowExtensions: true
+/* Quan trọng: Để false để nhận các thẻ @Semantics từ tầng dưới */
+@Metadata.ignorePropagatedAnnotations: false
+
+define root view entity ZC_EMPLOYEE_17
+  provider contract transactional_query
+  as projection on ZI_EMPLOYEE_17
+{
+  key employee_id,
+      first_name,
+      last_name,
+      email,
+      department,
+      salary,
+      hire_date,
+      status,
+      created_by,
+      created_at,
+      last_changed_by,
+      last_changed_at
+}
