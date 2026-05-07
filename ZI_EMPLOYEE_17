@@ -1,0 +1,26 @@
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Data Definition for Employee IF View'
+@Metadata.ignorePropagatedAnnotations: true
+
+define root view entity ZI_EMPLOYEE_17
+  as select from ztb_employee_17
+{
+  key employee_id,
+      first_name,
+      last_name,
+      email,
+      department,
+      salary,
+      hire_date,
+      status,
+
+      /* Administrative Fields - Tự động điền dữ liệu */
+      @Semantics.user.createdBy: true
+      created_by,
+      @Semantics.systemDateTime.createdAt: true
+      created_at,
+      @Semantics.user.lastChangedBy: true
+      last_changed_by,
+      @Semantics.systemDateTime.lastChangedAt: true
+      last_changed_at
+}
