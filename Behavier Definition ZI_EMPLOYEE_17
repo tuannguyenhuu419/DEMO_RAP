@@ -1,0 +1,43 @@
+managed implementation in class zbp_i_employee_17 unique;
+strict ( 2 );
+
+define behavior for ZI_EMPLOYEE_17 alias Employee
+persistent table ztb_employee_17
+lock master
+authorization master ( global )
+etag master last_changed_at
+{
+  create;
+  update;
+  delete;
+
+  // 1. Cấu hình tự động sinh mã UUID cho khóa chính
+  field ( numbering : managed, readonly ) employee_id;
+
+  // 2. Chỉ định các trường hệ thống là Read-only (framework tự động điền)
+  field ( readonly ) created_by, created_at, last_changed_by, last_changed_at;
+
+  // 3. Định nghĩa Action (ví dụ: Nút bấm Đổi trạng thái trên UI)
+  action ( features : instance ) toggle_status result [1] $self;
+
+  // 4. Định nghĩa Validation (Kiểm tra dữ liệu trước khi lưu)
+  validation validate_email on save { field email; create; update; }
+  validation validate_salary on save { field salary; create; update; }
+
+  // 5. Mapping giữa tên trường trong CDS View và bảng Database vật lý
+  mapping for ztb_employee_17
+    {
+      employee_id     = employee_id;
+      first_name      = first_name;
+      last_name       = last_name;
+      email           = email;
+      department      = department;
+      salary          = salary;
+      hire_date       = hire_date;
+      status          = status;
+      created_by      = created_by;
+      created_at      = created_at;
+      last_changed_by = last_changed_by;
+      last_changed_at = last_changed_at;
+    }
+}
