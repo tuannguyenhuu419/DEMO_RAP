@@ -1,0 +1,12 @@
+projection;
+strict ( 2 );
+
+define behavior for ZC_EMPLOYEE_17 alias Employee
+use etag
+{
+  use create;
+  use update;
+  use delete;
+
+  use action toggle_status;
+}
