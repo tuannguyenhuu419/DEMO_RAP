@@ -1,0 +1,113 @@
+//Global 
+
+CLASS zbp_i_employee_17 DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zi_employee_17.
+ENDCLASS.
+
+CLASS zbp_i_employee_17 IMPLEMENTATION.
+ENDCLASS.
+
+
+//local types
+CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
+  PRIVATE SECTION.
+
+    METHODS get_instance_features FOR INSTANCE FEATURES
+      IMPORTING keys REQUEST requested_features FOR Employee RESULT result.
+
+    METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION
+      IMPORTING REQUEST requested_authorizations FOR Employee RESULT result.
+
+    METHODS toggle_status FOR MODIFY
+      IMPORTING keys FOR ACTION Employee~toggle_status RESULT result.
+
+    METHODS validate_email FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Employee~validate_email.
+
+    METHODS validate_salary FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Employee~validate_salary.
+
+ENDCLASS.
+
+CLASS lhc_Employee IMPLEMENTATION.
+
+  METHOD get_instance_features.
+  ENDMETHOD.
+
+  METHOD get_global_authorizations.
+    " Cấp quyền cho các nút tiêu chuẩn (Create, Update, Delete)
+    result-%create = if_abap_behv=>auth-allowed.
+    result-%update = if_abap_behv=>auth-allowed.
+    result-%delete = if_abap_behv=>auth-allowed.
+
+    " Cấp quyền cho nút Action tự tạo (nếu có)
+    result-%action-toggle_status = if_abap_behv=>auth-allowed.
+  ENDMETHOD.
+
+  METHOD toggle_status.
+    " 1. Đọc dữ liệu hiện tại của nhân viên
+    READ ENTITIES OF zi_employee_17 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( status ) WITH CORRESPONDING #( keys )
+      RESULT DATA(employees).
+
+    " 2. Đổi trạng thái
+    LOOP AT employees ASSIGNING FIELD-SYMBOL(<employee>).
+      <employee>-status = COND #( WHEN <employee>-status = 'A' THEN 'I'
+                                  WHEN <employee>-status = 'I' THEN 'A'
+                                  ELSE 'A' ).
+    ENDLOOP.
+
+    " 3. Lưu sự thay đổi vào bộ nhớ đệm (buffer)
+    MODIFY ENTITIES OF zi_employee_17 IN LOCAL MODE
+      ENTITY Employee
+        UPDATE FIELDS ( status )
+        WITH VALUE #( FOR emp IN employees (
+                        %tky   = emp-%tky
+                        status = emp-status ) ).
+
+    " 4. Đọc lại dữ liệu để trả về kết quả cho UI
+    READ ENTITIES OF zi_employee_17 IN LOCAL MODE
+      ENTITY Employee
+        ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(employees_result).
+
+    result = VALUE #( FOR emp_res IN employees_result (
+                        %tky   = emp_res-%tky
+                        %param = emp_res ) ).
+  ENDMETHOD.
+
+  METHOD validate_email.
+    READ ENTITIES OF zi_employee_17 IN LOCAL MODE
+        ENTITY Employee
+          FIELDS ( email ) WITH CORRESPONDING #( keys )
+        RESULT DATA(employees).
+
+    LOOP AT employees INTO DATA(employee).
+      IF employee-email NS '@'. " NS: Not String (Không chứa chuỗi)
+        APPEND VALUE #( %tky = employee-%tky ) TO failed-employee.
+        APPEND VALUE #( %tky = employee-%tky
+                        %msg = new_message_with_text(
+                                 severity = if_abap_behv_message=>severity-error
+                                 text     = 'Email phải chứa ký tự @' ) ) TO reported-employee.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD validate_salary.
+    READ ENTITIES OF zi_employee_17 IN LOCAL MODE
+        ENTITY Employee
+          FIELDS ( salary ) WITH CORRESPONDING #( keys )
+        RESULT DATA(employees).
+
+    LOOP AT employees INTO DATA(employee).
+      IF employee-salary <= 0.
+        APPEND VALUE #( %tky = employee-%tky ) TO failed-employee.
+        APPEND VALUE #( %tky = employee-%tky
+                        %msg = new_message_with_text(
+                                 severity = if_abap_behv_message=>severity-error
+                                 text     = 'Lương phải lớn hơn 0' ) ) TO reported-employee.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+ENDCLASS.
