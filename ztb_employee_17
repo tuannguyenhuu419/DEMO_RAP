@@ -1,0 +1,21 @@
+@EndUserText.label : 'Employee Table'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table ztb_employee_17 {
+
+  key employee_id : sysuuid_x16 not null;
+  first_name      : abap.char(40) not null;
+  last_name       : abap.char(40) not null;
+  email           : abap.char(80) not null;
+  department      : abap.char(20) not null;
+  salary          : abap.dec(15,2) not null;
+  hire_date       : abap.dats not null;
+  status          : abap.char(1) not null;
+  created_by      : syuname;
+  created_at      : timestampl;
+  last_changed_by : syuname;
+  last_changed_at : timestampl;
+
+}
